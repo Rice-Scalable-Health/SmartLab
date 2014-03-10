@@ -1,2 +1,2 @@
-SmartLab
+Android Application for SmartLab
 ========
