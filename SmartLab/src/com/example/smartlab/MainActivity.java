@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -132,12 +134,14 @@ public class MainActivity extends Activity {
 			
 			setContentView(R.layout.image_view);
 			ImageView i = (ImageView) findViewById(R.id.image);
-			Button button = (Button) findViewById(R.id.button);
+			Button countBtn = (Button) findViewById(R.id.button);
+			Button runAgainBtn = (Button) findViewById(R.id.runAgain);
 
 			
 			try {
 				i.setImageBitmap(bmp);
-				button.setText("Count: " + circles.size().width);
+				countBtn.setText("Count: " + circles.size().width);
+				runAgainBtn.setText("Analyze Another Sample");
 			} catch (Exception e) {
 			       Log.e("Error", "Error occured");
 			       e.printStackTrace();
@@ -159,6 +163,20 @@ public class MainActivity extends Activity {
 		Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
 		photoPickerIntent.setType("image/*");
 		startActivityForResult(photoPickerIntent, 1);
+	}
+	
+	public void addListenerOnButton() {
+ 
+		Button button = (Button) findViewById(R.id.runAgain);
+		button.setOnClickListener(new OnClickListener() {
+ 
+			@Override
+			public void onClick(View arg0) {
+				photoPicker();
+			}
+ 
+		});
+ 
 	}
 
 }
