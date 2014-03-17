@@ -38,10 +38,11 @@ public class MainActivity extends Activity {
 		   switch (status) {
 		       case LoaderCallbackInterface.SUCCESS:
 		       {
-		      Log.i("Setup", "OpenCV loaded successfully");
+		    	   Log.i("Setup", "OpenCV loaded successfully");
 		      // Create and set View
-		      setContentView(R.layout.activity_main);
-		      photoPicker();
+		    	   setContentView(R.layout.activity_main);
+		    	   addButtonListener();
+		      //photoPicker();
 		       } break;
 		       default:
 		       {
@@ -60,11 +61,8 @@ public class MainActivity extends Activity {
 	    {
 	      Log.e("OpenCV Setup", "Cannot connect to OpenCV Manager");
 	    }
-	    
-	    
 		
 		setContentView(R.layout.activity_main);
-		Log.i("Setup", "Counting RBCs");
 	}
 
 	@Override
@@ -134,6 +132,7 @@ public class MainActivity extends Activity {
 			
 			setContentView(R.layout.image_view);
 			ImageView i = (ImageView) findViewById(R.id.image);
+			addListenerOnButton();
 			Button countBtn = (Button) findViewById(R.id.button);
 			Button runAgainBtn = (Button) findViewById(R.id.runAgain);
 
@@ -168,6 +167,21 @@ public class MainActivity extends Activity {
 	public void addListenerOnButton() {
  
 		Button button = (Button) findViewById(R.id.runAgain);
+		button.setOnClickListener(new OnClickListener() {
+ 
+			@Override
+			public void onClick(View arg0) {
+				//setContentView(R.layout.activity_main);
+				photoPicker();
+			}
+ 
+		});
+ 
+	}
+	
+	public void addButtonListener() {
+		 
+		Button button = (Button) findViewById(R.id.countRBCs);
 		button.setOnClickListener(new OnClickListener() {
  
 			@Override
