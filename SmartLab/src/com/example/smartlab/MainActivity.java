@@ -21,6 +21,7 @@ import android.provider.MediaStore.Images.Media;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
@@ -38,19 +39,23 @@ public class MainActivity extends Activity {
 		   switch (status) {
 		       case LoaderCallbackInterface.SUCCESS:
 		       {
-		    	   Log.i("Setup", "OpenCV loaded successfully");
-		      // Create and set View
-		    	   setContentView(R.layout.activity_main);
-		    	   addButtonListener();
-		      //photoPicker();
+		    	   setupMenu();
 		       } break;
 		       default:
 		       {
-		      super.onManagerConnected(status);
+		    	   super.onManagerConnected(status);
 		       } break;
 		   }
-		    }
-		};
+		}
+	};
+	
+	private void setupMenu(){
+ 	   setContentView(R.layout.activity_main);
+ 	   //View btn = findViewById(R.id.countRBCs);
+ 	   //View root = btn.getRootView();
+ 	   //root.setBackgroundColor(Color.BLACK);
+ 	   addButtonListener();
+	}
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,8 +66,7 @@ public class MainActivity extends Activity {
 	    {
 	      Log.e("OpenCV Setup", "Cannot connect to OpenCV Manager");
 	    }
-		
-		setContentView(R.layout.activity_main);
+
 	}
 
 	@Override
@@ -171,7 +175,6 @@ public class MainActivity extends Activity {
  
 			@Override
 			public void onClick(View arg0) {
-				//setContentView(R.layout.activity_main);
 				photoPicker();
 			}
  

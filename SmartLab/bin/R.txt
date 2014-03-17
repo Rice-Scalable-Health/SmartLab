@@ -16,6 +16,7 @@ int layout image_view 0x7f030001
 int menu main 0x7f080000
 int string action_settings 0x7f060001
 int string app_name 0x7f060000
+int string blood_smear 0x7f060005
 int string button_label 0x7f060003
 int string hello_world 0x7f060002
 int string labFunction1 0x7f060004
