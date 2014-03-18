@@ -6,7 +6,7 @@ int drawable ic_launcher 0x7f020000
 int id action_settings 0x7f040007
 int id any 0x7f040000
 int id back 0x7f040001
-int id button 0x7f040005
+int id count 0x7f040005
 int id countRBCs 0x7f040003
 int id front 0x7f040002
 int id image 0x7f040004

@@ -28,6 +28,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.opencv.imgproc.Imgproc;
 
@@ -51,9 +52,6 @@ public class MainActivity extends Activity {
 	
 	private void setupMenu(){
  	   setContentView(R.layout.activity_main);
- 	   //View btn = findViewById(R.id.countRBCs);
- 	   //View root = btn.getRootView();
- 	   //root.setBackgroundColor(Color.BLACK);
  	   addButtonListener();
 	}
 
@@ -137,13 +135,14 @@ public class MainActivity extends Activity {
 			setContentView(R.layout.image_view);
 			ImageView i = (ImageView) findViewById(R.id.image);
 			addListenerOnButton();
-			Button countBtn = (Button) findViewById(R.id.button);
+			TextView count = (TextView) findViewById(R.id.count);
 			Button runAgainBtn = (Button) findViewById(R.id.runAgain);
 
 			
 			try {
 				i.setImageBitmap(bmp);
-				countBtn.setText("Count: " + circles.size().width);
+				count.setText("  Count: " + circles.size().width);
+				runAgainBtn.setBackgroundColor(0xC0C0C0);
 				runAgainBtn.setText("Analyze Another Sample");
 			} catch (Exception e) {
 			       Log.e("Error", "Error occured");
@@ -185,6 +184,7 @@ public class MainActivity extends Activity {
 	public void addButtonListener() {
 		 
 		Button button = (Button) findViewById(R.id.countRBCs);
+		button.setBackgroundColor(0xC0C0C0);
 		button.setOnClickListener(new OnClickListener() {
  
 			@Override
