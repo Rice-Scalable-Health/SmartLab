@@ -14,13 +14,24 @@
         android:id="@+id/count"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:gravity="center_horizontal"
+        android:text="@string/hello_world" />
+    
+    <TextView
+        android:id="@+id/result"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:gravity="center_horizontal"
         android:text="@string/hello_world" />
     
         <Button
         android:id="@+id/runAgain"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
+        android:gravity="center_horizontal"
+        android:textSize="30sp"
         android:text="@string/button_label" />
 
 </LinearLayout>
