@@ -3,6 +3,7 @@ package com.example.smartlab;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.LoaderCallbackInterface;
@@ -35,6 +36,8 @@ import android.widget.TextView;
 import org.opencv.imgproc.Imgproc;
 
 public class MainActivity extends Activity {
+	
+	private static double aneamiaProb;
 	
 	private BaseLoaderCallback mOpenCVCallBack = new BaseLoaderCallback(this) {
 		@Override
@@ -100,48 +103,33 @@ public class MainActivity extends Activity {
 	
 	private void countRBCs(Bitmap image){
 		try {
-		    Log.i("Init", "0");
 			Mat mat = new Mat(image.getHeight(), image.getWidth(), CvType.CV_8UC3);
 			Bitmap bmp32 = image.copy(Bitmap.Config.ARGB_8888, true); 
 		    Utils.bitmapToMat(bmp32, mat);
-		    Log.i("Init", "1");
+		   
+		    
 		    Mat gray = new Mat(image.getHeight(),image.getWidth(),CvType.CV_8UC1);
-		    Log.i("Init", "2");
-		    ByteArrayOutputStream stream = new ByteArrayOutputStream();
-		    image.compress(Bitmap.CompressFormat.PNG, 100, stream);
-		    byte[] byteArray = stream.toByteArray();
-		    Log.i("Init", "3");
-		    mat.put(0, 0, byteArray);
-		    gray.put(0, 0, byteArray);
-		    //Mat circles = new Mat();
-		    Log.i("Test", "Worked till here");
 		    
-		    boolean hasAnemia = findIronDeficiencyCells(gray, mat, 3);
-		    Log.i("Anemia", "Ran without error");
-		    Log.i("Anemia", "Ran without error");
-		    Log.i("Anemia", "Ran without error");
-		    Log.i("Anemia", "Ran without error");
-		    Log.i("Anemia", "Ran without error");
-		    
-		    
-		    /*Imgproc.cvtColor(mat,  gray,  Imgproc.COLOR_RGB2GRAY);
-		    Imgproc.GaussianBlur(gray, gray, new Size(9,9), 0.5, 0.5);
-		    
-		    Imgproc.HoughCircles(gray, circles, Imgproc.CV_HOUGH_GRADIENT, 1, 8, 150, 12, 8, 15);
-		    System.out.println("width: " + String.valueOf(circles.size().width) + ", height: " + String.valueOf(circles.size().height));
-		    
-		    for (int i=0; i < circles.size().width; i++) {
-		    	Point3 circ = new Point3(circles.get(0, i));
-		    	Point center = new Point(circ.x, circ.y);
-		    	
-		    	Core.circle(mat, center, 3, new Scalar(0,255,0));
-		    	Core.circle(mat, center, (int)Math.round(circ.z), new Scalar(255,0,0));
-		    	
-		    	System.out.println("x: " + String.valueOf(circ.x) + ", y: " + String.valueOf(circ.y) + 
-		    			", r: " + String.valueOf(circ.z));
+		    byte[] byteArray = null;
+		    //for non-greyscale images
+		    if(true){
+			    int bytes = bmp32.getWidth()*bmp32.getHeight()*4;
+			    ByteBuffer buffer = ByteBuffer.allocate(bytes);
+			    bmp32.copyPixelsToBuffer(buffer);
+			    byteArray = buffer.array();
 		    }
 		    
-		    Imgproc.cvtColor(mat,  mat,  Imgproc.COLOR_RGB2BGR);*/
+		    
+		    mat.put(0, 0, byteArray);
+	    	//Imgproc.cvtColor(mat,  gray,  Imgproc.COLOR_RGB2GRAY);
+		    gray.put(0, 0, byteArray);
+		    Mat circles = new Mat();  
+		    
+		    Imgproc.cvtColor(mat,  gray,  Imgproc.COLOR_RGB2GRAY);
+		    
+		    boolean isSick = findIronDeficiencyCells(gray,mat,3);
+		    
+		    Imgproc.cvtColor(mat,  mat,  Imgproc.COLOR_RGB2BGR);
 		    byte[] outData = new byte[mat.rows()*mat.cols()*(int)(mat.elemSize())];
 			mat.get(0, 0, outData);
 			
@@ -158,15 +146,20 @@ public class MainActivity extends Activity {
 			
 			try {
 				i.setImageBitmap(bmp);
-				//count.setText(" Count: " + circles.size().width);
-				result.setText(" No sign of Anemia detected.");
-				result.setTextColor(Color.GREEN);
+				count.setText(" Percentage of possible iron deficient cells:  " + aneamiaProb + "%");
+				//count.setText(" Number of cells:  " + aneamiaProb);
+				if(isSick){
+					result.setText(" Iron Deficiency Anemia detected.");
+					result.setTextColor(Color.RED);
+				}else{
+					result.setText(" No sign of Anemia detected.");
+					result.setTextColor(Color.GREEN);
+				}
 				runAgainBtn.setText("Analyze Another Sample");
 			} catch (Exception e) {
 			       Log.e("Error", "Error occured");
 			       e.printStackTrace();
 			}
-			Log.i("Function", "4");
 			
 			
 		} catch (Exception e) {
@@ -180,11 +173,9 @@ public class MainActivity extends Activity {
 	}
 	
 	private void photoPicker(){
-		Log.i("Photo", "Started");
 		Intent photoPickerIntent = new Intent(Intent.ACTION_GET_CONTENT);
 		photoPickerIntent.setType("image/*");
 		startActivityForResult(photoPickerIntent, 1);
-		Log.i("Photo", "Ended");
 	}
 	
 	public void addListenerOnButton() {
@@ -230,7 +221,7 @@ public class MainActivity extends Activity {
 	
 	public static void findHoughCircles(Mat newCircles, Mat mat) {
 		Mat tmpCircles = new Mat();
-		int[] radRange = {6, 10};
+		int[] radRange = {16, 20};
 		int[] thresh = {25, 6};
 	    int numCell;
 
@@ -267,7 +258,7 @@ public class MainActivity extends Activity {
 	    double sickProb;
 	    int numCell;
 		
-	    Imgproc.GaussianBlur(mat, mat, new Size(9,9), 0.1, 0.1);
+//	    Imgproc.GaussianBlur(mat, mat, new Size(9,9), 0.1, 0.1);
 	    Imgproc.HoughCircles(mat, tmpCircles, Imgproc.CV_HOUGH_GRADIENT, 1, radRange[0],
 	    		thresh[0], thresh[1], radRange[0], radRange[1]);
 	    numCell = (int)tmpCircles.size().width;
@@ -308,8 +299,10 @@ public class MainActivity extends Activity {
 	    }
 	    sickProb = 100*count[sickGroup]/numCell;
 	    System.out.println("Percentage of possible iron deficient cells: " + String.valueOf(sickProb) + "%");
+	    aneamiaProb = sickProb; //changed to numCell to just output count for time being
+	    //System.out.println(numCell);
 
-	    return (sickProb > probThresh && maxCenter - normalCellCenter > centerThresh);
+	    return  (sickProb > probThresh && maxCenter - normalCellCenter > centerThresh);
 	}
 	
 	public static boolean findIronDeficiencyCells2(Mat mat, Mat drawMat) {
