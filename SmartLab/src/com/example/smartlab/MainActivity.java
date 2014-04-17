@@ -28,6 +28,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -46,6 +47,13 @@ public class MainActivity extends Activity {
 	/* Holds the count of number of times user has touched the screen - used for user input of RBC size */
 	private static int touchCount = 0;
 	
+	/* Screen Size */
+	private static int width;
+	private static int height;
+	
+	/* Image width */
+	private static int imageWidth;
+	
 	/* Variables for (x,y) coordinates when drawing a line to specify RBC relative size */
 	private static float x1;
 	private static float x2;
@@ -53,6 +61,7 @@ public class MainActivity extends Activity {
 	private static float y2;
 	
 	private static Canvas canvas;
+	private static ImageView imView;
 	
 	
 	private BaseLoaderCallback mOpenCVCallBack = new BaseLoaderCallback(this) {
@@ -73,6 +82,12 @@ public class MainActivity extends Activity {
 	
 	private void setupMenu(){
  	   setContentView(R.layout.activity_main);
+ 	   
+ 	   /* Determine size of the screen - Using Depreciated Methods*/
+ 	   Display display = getWindowManager().getDefaultDisplay();
+ 	   width = display.getWidth();
+ 	   height = display.getHeight();
+ 	   
  	   addButtonListener();
 	}
 
@@ -139,7 +154,7 @@ public class MainActivity extends Activity {
 		    mat.put(0, 0, byteArray);
 	    	//Imgproc.cvtColor(mat,  gray,  Imgproc.COLOR_RGB2GRAY);
 		    gray.put(0, 0, byteArray);
-		    Mat circles = new Mat();  
+		    //Mat circles = new Mat();  
 		    
 		    Imgproc.cvtColor(mat,  gray,  Imgproc.COLOR_RGB2GRAY);
 		    
@@ -153,7 +168,7 @@ public class MainActivity extends Activity {
 			Utils.matToBitmap(mat, bmp);
 			
 			setContentView(R.layout.image_view);
-			ImageView i = (ImageView) findViewById(R.id.image);
+			imView = (ImageView) findViewById(R.id.image);
 			addImageTouchListener();
 			addListenerOnButton();
 			TextView count = (TextView) findViewById(R.id.count);
@@ -162,11 +177,14 @@ public class MainActivity extends Activity {
 
 			
 			try {
-				i.setImageBitmap(bmp);
+				imView.setImageBitmap(bmp);
+				imageWidth = bmp.getWidth();
 				canvas = new Canvas(bmp);
 				Paint paint = new Paint();
 			    paint.setColor(Color.RED);
-				canvas.drawLine(0,0,40,40, paint);
+				//canvas.drawLine(0,0,40,40, paint);
+			    canvas.drawCircle(40, 40, 6, paint);
+			    canvas.drawCircle(100, 40, 10, paint);
 				count.setText(" Percentage of possible iron deficient cells:  " + aneamiaProb + "%");
 				if(isSick){
 					result.setText(" Iron Deficiency Anemia detected.");
@@ -206,6 +224,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				photoPicker();
+				touchCount = 0;
 			}
  
 		});
@@ -220,6 +239,7 @@ public class MainActivity extends Activity {
 			@Override
 			public void onClick(View arg0) {
 				photoPicker();
+				touchCount = 0;
 			}
  
 		});
@@ -227,8 +247,7 @@ public class MainActivity extends Activity {
 	}
 	
 	public void addImageTouchListener(){
-		ImageView i = (ImageView) findViewById(R.id.image);
-		i.setOnTouchListener(new OnTouchListener(){
+		imView.setOnTouchListener(new OnTouchListener(){
 
 			@Override
 			public boolean onTouch(View arg0, MotionEvent me) {
@@ -238,20 +257,17 @@ public class MainActivity extends Activity {
 				 * We then use this diameter to set our parameters for the image processing algorithms.
 				 */
 				if(touchCount == 0){
-					Log.i("Touch", "First");
 					x1 = me.getX();
 					y1 = me.getY();
 					touchCount++;
 				}else if(touchCount == 1){
 					if(me.getX() == x1 && me.getY() == y1){
-						Log.i("Touch", "Double Click");
-						//no-op
+						//No-op: Removes double click bug
 					}else{
-						Log.i("Touch", "Second");
 						x2 = me.getX();
 						y2 = me.getY();
 						touchCount++; //don't want it to loop
-						promptUserOnLine();
+						validateUserRBCSizeInput();
 					}
 				}
 				return true;
@@ -260,16 +276,24 @@ public class MainActivity extends Activity {
 		});
 	}
 	
-	public void promptUserOnLine(){
-		Log.i("Line", "This was called");
+	public void validateUserRBCSizeInput(){
 		Paint paint = new Paint();
 	    paint.setColor(Color.RED);
-	    Log.i("X1", x1 + "");
-	    Log.i("Y1", y1 + "");
-	    Log.i("X2", x2 + "");
-	    Log.i("Y2", x2 + "");
 	    
-	    canvas.drawLine(x1, y1, x2, y2, paint);
+	    //Distance formula to compute actual cell size
+	    double x = Math.pow(x2 - x1, 2);
+	    double y = Math.pow(y2 - y1, 2);
+	    double distance = Math.sqrt(x + y);
+	    Log.i("Distance", distance+ "");
+	    
+	    //Scale distance to account for fact that we are displaying image at not its true width
+	    double scale = (double)imageWidth / width;
+	    distance = distance * scale;
+	    Log.i("Distance Scaled", distance+ "");
+	    
+	    //Line drawing not working
+	    canvas.drawLine(x1, y1, x2, y2, paint); 
+	    imView.invalidate(); //force the view to draw
 	    //TODO: Prompt user to confirm the line is accurate. If yes, do analysis, if no repeat
 	}
 	
@@ -361,6 +385,7 @@ public class MainActivity extends Activity {
 	    		Core.circle(drawMat, center, (int)Math.round(circ.z), new Scalar(0,0,0));
 	    	} else {
 	    		Core.circle(drawMat, center, 1, new Scalar(255,255,255));
+	    		Log.i("Circle Radius", (int)Math.round(circ.z) + "");
 	    		Core.circle(drawMat, center, (int)Math.round(circ.z), new Scalar(255,255,255));
 	    	}
 	    }
