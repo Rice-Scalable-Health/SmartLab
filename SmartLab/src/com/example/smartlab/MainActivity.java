@@ -27,17 +27,29 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.view.View.OnTouchListener;
 
 import org.opencv.imgproc.Imgproc;
 
 public class MainActivity extends Activity {
 	
 	private static double aneamiaProb;
+	
+	/* Holds the count of number of times user has touched the screen - used for user input of RBC size */
+	private static int touchCount = 0;
+	
+	/* Variables for (x,y) coordinates when drawing a line to specify RBC relative size */
+	private static float x1;
+	private static float x2;
+	private static float y1;
+	private static float y2;
+	
 	
 	private BaseLoaderCallback mOpenCVCallBack = new BaseLoaderCallback(this) {
 		@Override
@@ -138,6 +150,7 @@ public class MainActivity extends Activity {
 			
 			setContentView(R.layout.image_view);
 			ImageView i = (ImageView) findViewById(R.id.image);
+			addImageTouchListener();
 			addListenerOnButton();
 			TextView count = (TextView) findViewById(R.id.count);
 			TextView result = (TextView) findViewById(R.id.result);
@@ -147,7 +160,6 @@ public class MainActivity extends Activity {
 			try {
 				i.setImageBitmap(bmp);
 				count.setText(" Percentage of possible iron deficient cells:  " + aneamiaProb + "%");
-				//count.setText(" Number of cells:  " + aneamiaProb);
 				if(isSick){
 					result.setText(" Iron Deficiency Anemia detected.");
 					result.setTextColor(Color.RED);
@@ -204,6 +216,41 @@ public class MainActivity extends Activity {
  
 		});
  
+	}
+	
+	public void addImageTouchListener(){
+		ImageView i = (ImageView) findViewById(R.id.image);
+		i.setOnTouchListener(new OnTouchListener(){
+
+			@Override
+			public boolean onTouch(View arg0, MotionEvent me) {
+				/*
+				 * Handling for User Inputed RBC size.
+				 * User touches two sides of the RBC to identify the diameter of the RBC on the image displayed by the phone
+				 * We then use this diameter to set our parameters for the image processing algorithms.
+				 */
+				if(touchCount == 0){
+					Log.i("Touch", "First");
+					x1 = me.getX();
+					y1 = me.getY();
+					touchCount++;
+				}else if(touchCount == 1){
+					Log.i("Touch", "Second");
+					x2 = me.getX();
+					y2 = me.getY();
+					touchCount++;
+				}else{
+					touchCount = 0;
+					promptUserOnLine();
+				}
+				return true;
+			}
+			
+		});
+	}
+	
+	public void promptUserOnLine(){
+		Log.i("Line", "This is called");
 	}
 	
 	/*
