@@ -24,7 +24,9 @@ import android.provider.MediaStore.Images.Media;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MotionEvent;
@@ -49,6 +51,8 @@ public class MainActivity extends Activity {
 	private static float x2;
 	private static float y1;
 	private static float y2;
+	
+	private static Canvas canvas;
 	
 	
 	private BaseLoaderCallback mOpenCVCallBack = new BaseLoaderCallback(this) {
@@ -159,6 +163,10 @@ public class MainActivity extends Activity {
 			
 			try {
 				i.setImageBitmap(bmp);
+				canvas = new Canvas(bmp);
+				Paint paint = new Paint();
+			    paint.setColor(Color.RED);
+				canvas.drawLine(0,0,40,40, paint);
 				count.setText(" Percentage of possible iron deficient cells:  " + aneamiaProb + "%");
 				if(isSick){
 					result.setText(" Iron Deficiency Anemia detected.");
@@ -235,13 +243,16 @@ public class MainActivity extends Activity {
 					y1 = me.getY();
 					touchCount++;
 				}else if(touchCount == 1){
-					Log.i("Touch", "Second");
-					x2 = me.getX();
-					y2 = me.getY();
-					touchCount++;
-				}else{
-					touchCount = 0;
-					promptUserOnLine();
+					if(me.getX() == x1 && me.getY() == y1){
+						Log.i("Touch", "Double Click");
+						//no-op
+					}else{
+						Log.i("Touch", "Second");
+						x2 = me.getX();
+						y2 = me.getY();
+						touchCount++; //don't want it to loop
+						promptUserOnLine();
+					}
 				}
 				return true;
 			}
@@ -250,7 +261,16 @@ public class MainActivity extends Activity {
 	}
 	
 	public void promptUserOnLine(){
-		Log.i("Line", "This is called");
+		Log.i("Line", "This was called");
+		Paint paint = new Paint();
+	    paint.setColor(Color.RED);
+	    Log.i("X1", x1 + "");
+	    Log.i("Y1", y1 + "");
+	    Log.i("X2", x2 + "");
+	    Log.i("Y2", x2 + "");
+	    
+	    canvas.drawLine(x1, y1, x2, y2, paint);
+	    //TODO: Prompt user to confirm the line is accurate. If yes, do analysis, if no repeat
 	}
 	
 	/*
