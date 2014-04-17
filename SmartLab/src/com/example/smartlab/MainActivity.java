@@ -35,7 +35,9 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.view.View.OnTouchListener;
 
 import org.opencv.imgproc.Imgproc;
@@ -54,11 +56,17 @@ public class MainActivity extends Activity {
 	/* Image width */
 	private static int imageWidth;
 	
+	/* Seekbar for RBC size range selection */
+	private SeekBar rbcSizeSeeker = null;
+	
 	/* Variables for (x,y) coordinates when drawing a line to specify RBC relative size */
 	private static float x1;
 	private static float x2;
 	private static float y1;
 	private static float y2;
+	
+	/* Bitmap image */
+	private static Bitmap bmp;
 	
 	private static Canvas canvas;
 	private static ImageView imView;
@@ -164,11 +172,30 @@ public class MainActivity extends Activity {
 		    byte[] outData = new byte[mat.rows()*mat.cols()*(int)(mat.elemSize())];
 			mat.get(0, 0, outData);
 			
-			Bitmap bmp = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
+			bmp = Bitmap.createBitmap(mat.cols(), mat.rows(), Bitmap.Config.ARGB_8888);
 			Utils.matToBitmap(mat, bmp);
 			
 			setContentView(R.layout.image_view);
 			imView = (ImageView) findViewById(R.id.image);
+			rbcSizeSeeker = (SeekBar) findViewById(R.id.seek1);
+			rbcSizeSeeker.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+	            int progressChanged = 0;
+	 
+	            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser){
+	                progressChanged = progress;
+	                //canvas = new Canvas(bmp); //No idea if this will work
+	                drawCircleAtPoint(40,40, (progressChanged/2.0), canvas);
+	            }
+	 
+	            public void onStartTrackingTouch(SeekBar seekBar) {
+	                // TODO Auto-generated method stub
+	            }
+	 
+	            public void onStopTrackingTouch(SeekBar seekBar) {
+	                //drawCircleAtPoint(40,40, (progressChanged/2.0), canvas);
+	            }
+	        });
+			
 			addImageTouchListener();
 			addListenerOnButton();
 			TextView count = (TextView) findViewById(R.id.count);
@@ -180,11 +207,14 @@ public class MainActivity extends Activity {
 				imView.setImageBitmap(bmp);
 				imageWidth = bmp.getWidth();
 				canvas = new Canvas(bmp);
+				
+				
 				Paint paint = new Paint();
 			    paint.setColor(Color.RED);
-				//canvas.drawLine(0,0,40,40, paint);
-			    canvas.drawCircle(40, 40, 6, paint);
+			    paint.setStyle(Paint.Style.STROKE);
 			    canvas.drawCircle(100, 40, 10, paint);
+			    
+			    
 				count.setText(" Percentage of possible iron deficient cells:  " + aneamiaProb + "%");
 				if(isSick){
 					result.setText(" Iron Deficiency Anemia detected.");
@@ -295,6 +325,16 @@ public class MainActivity extends Activity {
 	    canvas.drawLine(x1, y1, x2, y2, paint); 
 	    imView.invalidate(); //force the view to draw
 	    //TODO: Prompt user to confirm the line is accurate. If yes, do analysis, if no repeat
+	}
+	
+	public void drawCircleAtPoint(int x, int y, double r, Canvas c){
+		Log.i("Paint", "This was called");
+		//canvas.drawBitmap(bmp);
+		Paint paint = new Paint();
+		paint.setColor(Color.RED);
+	    paint.setStyle(Paint.Style.STROKE);
+		canvas.drawCircle(x, y, (float) r, paint);
+		imView.invalidate();
 	}
 	
 	/*
